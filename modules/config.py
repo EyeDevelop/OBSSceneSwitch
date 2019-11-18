@@ -111,6 +111,7 @@ def generate_config():
 
     base_config = """{
     "start_scene": "Coding",
+    "unknown_app_scene": "Privacy",
     "delay_time": 300,
     "window_class": {
         "google-chrome": {
@@ -122,7 +123,12 @@ def generate_config():
             "scene": "Coding"
         }
     },
-    "window_name": {}
+    "window_name": {
+        "whatsapp": {
+            "strict_match": false,
+            "scene": "Privacy"
+        }
+    }
 }"""
 
     with open(os.path.join(SCRIPT_LOCATION, "screens.json"), "wt") as fp:
