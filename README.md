@@ -50,11 +50,11 @@ The default config file ``screens.json`` is as follows:
 }
 ```
 
-``start_scene (int)``: When you boot screen_daemon.py, it sets the scene to your default scene.\
+``start_scene (int)``: When you boot screen_daemon.py, it sets the scene to your default scene.
 
-``unknown_app_scene (str)``: If an app is not listed under window_class or window_name, it will default to this. Set to null if you don't want this auto-switch.\
+``unknown_app_scene (str)``: If an app is not listed under window_class or window_name, it will default to this. Set to null if you don't want this auto-switch.
 
-``delay_time (int)``: The time between scanning the active window. Defaults to 300 ms.\
+``delay_time (int)``: The time between scanning the active window. Defaults to 300 ms.
 
 ``window_class``: List of window classes (WM_CLASS with xprop, executable name for Windows).\
 |  - ``strict_match (bool)``: Strict matching means the window class / executable has to be EXACTLY the same. Off for checking close resemblance instead.\
