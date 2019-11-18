@@ -2,7 +2,8 @@
 A small project to write a scene to a file. This file can be read by something like the Advanced Scene Switcher plugin for OBS.
 
 If you find this useful, please donate to me :)
-**BTC:** 164SdYJi6VEgQqrnbG49RiEL9FzDbR7hUe
+
+**BTC:** 164SdYJi6VEgQqrnbG49RiEL9FzDbR7hUe\
 **ETH:** 0xa6e36B2a6d0fE0af3CD6BaAB45daDc595b274B66
 
 ## Requirements
