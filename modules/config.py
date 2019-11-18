@@ -20,13 +20,18 @@ def check_config(conf):
     """
 
     # Test if all keys are in the file.
-    keys_needed = ["start_scene", "delay_time", "window_class", "window_name"]
+    keys_needed = ["start_scene", "unknown_app_scene", "delay_time", "window_class", "window_name"]
     for key in conf.keys():
         if key in keys_needed:
             keys_needed.remove(key)
+        else:
+            LOGGER.warning("Ignoring unknown root key {}".format(key))
 
         if key == "start_scene" and not isinstance(conf[key], str):
             LOGGER.warning("The root key 'start_scene' has a wrong type. It needs to be a string.")
+
+        if key == "unknown_app_scene" and (not isinstance(conf[key], str) and conf[key]):
+            LOGGER.warning("The root key 'unknown_app_scene' has a wrong type. Needs to be a string or null.")
 
         if key == "delay_time" and not isinstance(conf[key], int):
             LOGGER.warning("The root key 'delay_time' has a wrong type. It needs to be a number.")
@@ -62,7 +67,8 @@ def check_config(conf):
 
                 if sub_key == "scene" and (not isinstance(sub_val, str) and sub_val):
                     LOGGER.warning(
-                        "Sub key {} -> {} -> {} is of wrong type. Needs to be a string".format(sub_type, key, sub_key))
+                        "Sub key {} -> {} -> {} is of wrong type. Needs to be a string or null".format(sub_type, key,
+                                                                                                       sub_key))
 
             if len(sub_keys_needed) > 0:
                 LOGGER.warning("Key {} -> {} is missing the following required sub keys:\n\t\t{}".format(sub_type, key,

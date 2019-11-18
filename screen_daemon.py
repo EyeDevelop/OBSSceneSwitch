@@ -87,8 +87,17 @@ def main():
     # Notify ready for execution.
     LOGGER.info("Setup is done. Starting daemon...")
     while True:
+        # Sleep the delay time to not overuse the CPU.
+        time.sleep(init_conf["delay_time"] / 1000)
+
         data = check_new_scene()
         if not data:
+            # App is unknown. Switch to the "unknown_app" scene.
+            new_scene = init_conf["unknown_app_scene"]
+            if new_scene:
+                current_scene = new_scene
+                write_scene_to_file(current_scene)
+
             continue
 
         # Don't change the current scene if it's the same.
@@ -126,9 +135,6 @@ def main():
         write_scene_to_file(new_scene)
         current_scene = new_scene
         current_active = active_app
-
-        # Sleep the delay time to not overuse the CPU.
-        time.sleep(init_conf["delay_time"] / 1000)
 
 
 if __name__ == '__main__':
