@@ -46,6 +46,12 @@ The default config file ``screens.json`` is as follows:
             "strict_match": false,
             "scene": "Privacy"
         }
+    },
+    "desktop_name": {
+        "1": {
+            "strict_match": false,
+            "scene": "Privacy"
+        }
     }
 }
 ```
@@ -62,3 +68,5 @@ The default config file ``screens.json`` is as follows:
 |  - ``scene (str)``: The OBS scene name to switch to when this window_class becomes active.
 
 ``window_name``: Same as window class, but matches against window title.
+
+``desktop_name``: Same as window class, but matches against workspace names.
