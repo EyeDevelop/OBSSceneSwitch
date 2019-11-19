@@ -9,7 +9,7 @@ from modules.logger import get_logger
 LOGGER = get_logger(logging.INFO, __name__)
 
 
-def get_active_window_info_linux() -> Union[None, Tuple[List[str], str]]:
+def get_active_window_info_linux() -> Union[None, Tuple[List[str], str, str]]:
     """
     Function that uses the xprop command line utility to gather information about the active window.
     Returns None if it can't get the info.
@@ -18,18 +18,21 @@ def get_active_window_info_linux() -> Union[None, Tuple[List[str], str]]:
     """
 
     # Get the active window from the window manager.
-    p = subprocess.Popen(["xprop", "-root", "_NET_ACTIVE_WINDOW"], stdout=subprocess.PIPE,
+    p = subprocess.Popen(["xprop", "-root", "_NET_ACTIVE_WINDOW", "_NET_CURRENT_DESKTOP", "_NET_DESKTOP_NAMES"],
+                         stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     root_info, _ = p.communicate()
     root_info = root_info.decode("utf-8")
 
     # Check if it can be extracted, otherwise return nothing.
-    m = re.search(r'^_NET_ACTIVE_WINDOW.* ([\w]+)$', root_info)
-    if not m:
+    root_info = [re.search(r"[:=] (.*)", x) for x in root_info.split("\n")][:-1]
+    if not root_info[0]:
         return None
 
     # Get the active window id.
-    window_id = m.group(1)
+    window_id = root_info[0].group(1).split("# ")[-1]
+    active_workspace = int(root_info[1].group(1))
+    workspace_names = [x.replace('"', '') for x in root_info[2].group(1).split(", ")]
 
     # Get information about the active window.
     p = subprocess.Popen(["xprop", "-id", window_id, "WM_CLASS", "WM_NAME"], stdout=subprocess.PIPE,
@@ -44,10 +47,13 @@ def get_active_window_info_linux() -> Union[None, Tuple[List[str], str]]:
 
     # Split classes on comma and return a tuple of classes
     # and window title.
-    return m.group(1).replace('"', '').split(", "), m.group(2)
+    window_classes = m.group(1).replace('"', '').split(", ")
+    window_name = m.group(2)
+
+    return window_classes, window_name, workspace_names[active_workspace]
 
 
-def get_active_window_info_windows() -> Union[None, Tuple[List[str], str]]:
+def get_active_window_info_windows() -> Union[None, Tuple[List[str], str, str]]:
     """
     Function that uses the Windows API to get information about the current active screen.
     Returns None if it can't get the info.
@@ -66,10 +72,11 @@ def get_active_window_info_windows() -> Union[None, Tuple[List[str], str]]:
     window_title = GetWindowText(GetForegroundWindow())
 
     # Return the process name and the active windows.
-    return [""], window_title
+    # TODO: Get process name of window and workspace name.
+    return [""], window_title, ""
 
 
-def get_active_window_info() -> Union[None, Tuple[List[str], str]]:
+def get_active_window_info() -> Union[None, Tuple[List[str], str, str]]:
     """
     Wrapper function that returns the right result for the right OS.
 

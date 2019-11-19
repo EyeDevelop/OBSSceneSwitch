@@ -20,60 +20,64 @@ def check_config(conf):
     """
 
     # Test if all keys are in the file.
-    keys_needed = ["start_scene", "unknown_app_scene", "delay_time", "window_class", "window_name"]
+    keys_needed = {
+        "start_scene": [str, None],
+        "unknown_app_scene": [str, None],
+        "delay_time": [int],
+        "window_class": [dict],
+        "window_name": [dict],
+        "desktop_name": [dict],
+    }
+
     for key in conf.keys():
-        if key in keys_needed:
-            keys_needed.remove(key)
+        if type(conf[key]) not in keys_needed[key]:
+            LOGGER.warning("Root key '{}' is not of type: {}".format(
+                key,
+                keys_needed[key]
+            ))
+
+        if key in keys_needed.keys():
+            del keys_needed[key]
         else:
             LOGGER.warning("Ignoring unknown root key {}".format(key))
 
-        if key == "start_scene" and not isinstance(conf[key], str):
-            LOGGER.warning("The root key 'start_scene' has a wrong type. It needs to be a string.")
-
-        if key == "unknown_app_scene" and (not isinstance(conf[key], str) and conf[key]):
-            LOGGER.warning("The root key 'unknown_app_scene' has a wrong type. Needs to be a string or null.")
-
-        if key == "delay_time" and not isinstance(conf[key], int):
-            LOGGER.warning("The root key 'delay_time' has a wrong type. It needs to be a number.")
-
-        if key == "window_class" and not isinstance(conf[key], dict):
-            LOGGER.critical("The root key 'window_class' is not a dictionary. This needs to be fixed.")
-            exit(1)
-
-        if key == "window_name" and not isinstance(conf[key], dict):
-            LOGGER.critical("The root key 'window_name' is not a dictionary. This needs to be fixed.")
-            exit(1)
-
-    if len(keys_needed) > 0:
+    if len(keys_needed.keys()) > 0:
         LOGGER.warning(
             "You are missing the following main-level keys in your screens.json:\n\t\t" + ", ".join(keys_needed))
 
     # Test if all the window classes / names have the correct values and exist.
-    for sub_type in ["window_class", "window_name"]:
+    scan_type = {
+        "window_class": [dict],
+        "window_name": [dict],
+        "desktop_name": [dict]
+    }
+
+    for sub_type in scan_type.keys():
         for key in conf[sub_type].keys():
-            sub_keys_needed = ["strict_match", "scene"]
+            sub_keys = {
+                "strict_match": [bool],
+                "scene": [str, None]
+            }
+
             for sub_key in conf[sub_type][key].keys():
-                if sub_key in sub_keys_needed:
-                    sub_keys_needed.remove(sub_key)
+                sub_val = conf[sub_type][key][sub_key]
+                if type(sub_val) not in sub_keys[sub_key]:
+                    LOGGER.warning("Sub key {} -> {} -> {} is not of type: {}".format(
+                        sub_type,
+                        key,
+                        sub_key,
+                        sub_keys[sub_key]
+                    ))
+
+                if sub_key in sub_keys.keys():
+                    del sub_keys[sub_key]
                 else:
                     LOGGER.warning("Unknown sub key {} found in {} -> {}".format(sub_key, key, sub_type))
 
-                sub_val = conf[sub_type][key][sub_key]
-                if sub_key == "strict_match" and not isinstance(sub_val, bool):
-                    LOGGER.warning(
-                        "Sub key {} -> {} -> {} is of wrong type. Needs to be either 'true' or 'false'".format(sub_type,
-                                                                                                               key,
-                                                                                                               sub_key))
-
-                if sub_key == "scene" and (not isinstance(sub_val, str) and sub_val):
-                    LOGGER.warning(
-                        "Sub key {} -> {} -> {} is of wrong type. Needs to be a string or null".format(sub_type, key,
-                                                                                                       sub_key))
-
-            if len(sub_keys_needed) > 0:
+            if len(sub_keys.keys()) > 0:
                 LOGGER.warning("Key {} -> {} is missing the following required sub keys:\n\t\t{}".format(sub_type, key,
                                                                                                          ", ".join(
-                                                                                                             sub_keys_needed)))
+                                                                                                             sub_keys.keys())))
 
 
 def parse_config() -> dict:
@@ -128,6 +132,8 @@ def generate_config():
             "strict_match": false,
             "scene": "Privacy"
         }
+    },
+    "desktop_name": {
     }
 }"""
 
@@ -135,7 +141,7 @@ def generate_config():
         fp.write(base_config)
 
 
-def read_config_windows() -> Tuple[List[str], List[str], List[str], List[str], dict]:
+def read_config_windows() -> Tuple[dict, dict, dict]:
     """
     Reads all the window class and name directives from the config.
     Returns them as list.
@@ -151,21 +157,18 @@ def read_config_windows() -> Tuple[List[str], List[str], List[str], List[str], d
     conf = parse_config()
 
     # Split the strict classes from the not strict classes.
-    strict_classes = []
-    rel_classes = []
-    for wm_class in conf["window_class"].keys():
-        if conf["window_class"][wm_class]["strict_match"]:
-            strict_classes.append(wm_class)
-        else:
-            rel_classes.append(wm_class)
+    strict = {}
+    rel = {}
 
-    # Do the same for the window name.
-    strict_name = []
-    rel_name = []
-    for wm_name in conf["window_name"].keys():
-        if conf["window_name"][wm_name]["strict_match"]:
-            strict_name.append(wm_name)
-        else:
-            rel_name.append(wm_name)
+    # Get all the data and populate the strict and rel dictionaries.
+    for root_key in ["window_class", "window_name", "desktop_name"]:
+        strict[root_key] = []
+        rel[root_key] = []
 
-    return strict_classes, strict_name, rel_classes, rel_name, conf
+        for wm_class in conf[root_key].keys():
+            if conf[root_key][wm_class]["strict_match"]:
+                strict[root_key].append(wm_class)
+            else:
+                rel[root_key].append(wm_class)
+
+    return strict, rel, conf

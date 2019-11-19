@@ -24,28 +24,38 @@ def check_new_scene() -> Union[None, Tuple[str, str]]:
     if not data:
         return None
 
-    window_classes, window_name = data
-    strict_classes, strict_name, rel_classes, rel_name, conf = read_config_windows()
+    window_classes, window_name, workspace_name = data
+    strict, rel, conf = read_config_windows()
 
-    # First, do strict name matching.
-    for c_name in strict_name:
+    # First do workspace matching.
+    for c_workspace in strict["desktop_name"]:
+        if workspace_name == c_workspace:
+            return conf["desktop_name"][c_workspace]["scene"], workspace_name
+
+    # Relative workspace matching.
+    for c_workspace in rel["desktop_name"]:
+        if c_workspace.lower() in workspace_name.lower():
+            return conf["desktop_name"][c_workspace]["scene"], workspace_name
+
+    # Then, do strict name matching.
+    for c_name in strict["window_name"]:
         if window_name == c_name:
             return conf["window_name"][c_name]["scene"], window_name
 
     # Do relative name matching.
-    for c_name in rel_name:
+    for c_name in rel["window_name"]:
         if c_name.lower() in window_name.lower():
             return conf["window_name"][c_name]["scene"], window_name
 
     # Now do strict class matching.
     for wm_class in window_classes:
-        for c_class in strict_classes:
+        for c_class in strict["window_class"]:
             if wm_class == c_class:
                 return conf["window_class"][wm_class]["scene"], wm_class
 
     # Finally, relative class matching.
     for wm_class in window_classes:
-        for c_class in rel_classes:
+        for c_class in rel["window_class"]:
             if c_class.lower() in wm_class.lower():
                 return conf["window_class"][c_class]["scene"], wm_class
 
@@ -105,7 +115,7 @@ def main():
         if new_scene == current_scene:
             # Log once if the focus changed but the app leads to the same scene.
             if active_app != current_active:
-                LOGGER.info("Focused window changed to known app: {}. Not changing scene as it is the same.".format(
+                LOGGER.info("Focused screen changed to known definition: {}. Not changing scene as it is the same.".format(
                     active_app
                 ))
 
