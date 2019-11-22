@@ -13,7 +13,7 @@ if [[ ! -d "$HOME/.local/share/applications" ]]; then
 fi
 
 # Create a new launcher.
-cat << EOF > $HOME/.local/share/applications/stream-setup.desktop
+cat << EOF > /tmp/stream-setup.desktop
 [Desktop Entry]
 Categories=Development;
 Comment=Starts OBS and the rest of the stream setup.
@@ -27,4 +27,7 @@ Version=1.0
 EOF
 
 
-echo "Successfully created desktop entry!"
+echo "Successfully created desktop entry."
+echo "Installing file..."
+
+xdg-desktop-menu install /tmp/stream-setup.desktop && echo "Successfully installed desktop entry!"
