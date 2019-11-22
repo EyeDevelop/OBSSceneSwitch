@@ -17,8 +17,8 @@ cat << EOF > $HOME/.local/share/applications/stream-setup.desktop
 [Desktop Entry]
 Categories=Development;
 Comment=Starts OBS and the rest of the stream setup.
-Path="$(pwd)"
-Exec="start.sh"
+Path=$(pwd)
+Exec=./start.sh
 Icon=/usr/share/icons/hicolor/256x256/apps/com.obsproject.Studio.png
 Name=Start Stream Setup
 Terminal=true
