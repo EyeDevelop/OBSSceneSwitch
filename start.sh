@@ -6,6 +6,7 @@ if [[ ! -f "screen_daemon.py" ]]; then
     exit 1
 fi
 
+killall compton
 /usr/bin/obs &
 /usr/bin/google-chrome-stable --new-window https://app.pretzel.rocks/player &
 ./screen_daemon.py
